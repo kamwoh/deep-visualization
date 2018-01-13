@@ -9,6 +9,8 @@ import utils
 def main():
     from vgg16 import model
 
+    display_weight = False
+
     dirname = os.path.dirname(os.path.abspath(__file__))
     layer_idx = 1
 
@@ -24,16 +26,18 @@ def main():
     out = utils.get_layers(img, model, layer_idx)
     out = np.transpose(out, (3, 1, 2, 0))
     out = utils.normalize_image(out)
-    disp = utils.combine_and_fit(out, factor=0.5, is_layer=True)
+    disp = utils.combine_and_fit(out, factor=0.6, is_layer=True)
 
-    weight = model.get_weights()[layer_idx - 1]  # minus 1 because first layer in model is Input
-    weight = utils.normalize_weights(weight, 'conv')
-    weight = np.transpose(weight, (3, 0, 1, 2))
-    weight_disp = utils.combine_and_fit(weight, factor=20)
+    if display_weight:
+        weight = model.get_weights()[
+            (layer_idx - 1) * 2]  # minus 1 because first layer in model is Input, multiply 2 because to skip bias
+        weight = utils.normalize_weights(weight, 'conv')
+        weight = np.transpose(weight, (3, 0, 1, 2))
+        weight_disp = utils.combine_and_fit(weight, factor=10)
+        cv2.imshow('weight_disp', weight_disp)
 
     cv2.imshow('input', img_disp)
     cv2.imshow('disp', disp)
-    cv2.imshow('weight_disp', weight_disp)
 
     cv2.waitKey(0)
 

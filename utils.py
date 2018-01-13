@@ -12,20 +12,20 @@ def get_layers(x, model, out_idx):
     return out
 
 
-def normalize_image(img):
+def normalize_image(img, gamma=1.0):
     min_img = img.min()
     max_img = img.max()
     return (img - min_img) / (max_img - min_img)
 
 
-def normalize_weights(weights, mode):
+def normalize_weights(weights, mode, gamma=1.0):
     if mode == 'conv':
         if weights.shape[2] == 3:  # (h, w, c, n_filter)
             new_weights = normalize_image(weights)
         else:
             new_weights = np.zeros(weights.shape)
             for i in range(weights.shape[3]):
-                new_weights[..., i] = normalize_image(weights[..., i])
+                new_weights[..., i] = normalize_image(weights[..., i], gamma)
         return new_weights
 
 
@@ -68,31 +68,32 @@ def combine_and_fit(data, gap=1, factor=20, is_layer=False):
             n_row = total
             n_col = data.shape[-1]
 
-        print n_col, n_row, 'col row'
         n_col_gap = n_col - 1
         n_row_gap = n_row - 1
-        width = int(math.ceil(n_col * w * factor + n_col_gap * gap))
-        height = int(math.ceil(n_row * h * factor + n_row_gap * gap))
-        y_jump = int(math.ceil(h * factor + gap))
-        x_jump = int(math.ceil(w * factor + gap))
+        width = int(n_col * w * factor + n_col_gap * gap)
+        height = int(n_row * h * factor + n_row_gap * gap)
+        y_jump = int(h * factor + gap)
+        x_jump = int(w * factor + gap)
 
         img = np.zeros((height, width), dtype=np.float32)
 
         i = 0
-        print height, width, data.shape
         for y in range(n_row):
             y = y * y_jump
             j = 0
             for x in range(n_col):
                 x = x * x_jump
 
+                if i >= total:
+                    break
+
                 if is_layer:
                     d = data[i, :, :]
                 else:
                     d = data[i, :, :, j]
 
-                to_y = y + int(math.ceil(h * factor))
-                to_x = x + int(math.ceil(w * factor))
+                to_y = y + int(h * factor)
+                to_x = x + int(w * factor)
                 img[y:to_y, x:to_x] = cv2.resize(d, None, fx=factor, fy=factor,
                                                  interpolation=cv2.INTER_AREA)
 
