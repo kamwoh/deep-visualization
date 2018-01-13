@@ -12,6 +12,7 @@ def main():
     :return:
     """
     from vgg16 import model
+    from imagenet_classes import class_names
 
     dirname = os.path.dirname(os.path.abspath(__file__))
 
@@ -28,16 +29,19 @@ def main():
     out = np.transpose(out, (3, 1, 2, 0))
 
     out = utils.normalize_image(out)
-    disp = utils.combine_and_fit(out, factor=0.5, is_layer=True)
+    disp = utils.combine_and_fit(out, factor=0.5, is_conv=True)
 
     # out = np.square(out, 0)
 
     cv2.imshow('test', disp)
-    cv2.waitKey(0)
 
-    #
-    # for p in preds:
-    #     print class_names[p], prob[p]
+    prob = model.predict(img)[0]
+    preds = (np.argsort(prob)[::-1])[:5]
+
+    for p in preds:
+        print class_names[p], prob[p]
+
+    cv2.waitKey(0)
 
 
 if __name__ == '__main__':

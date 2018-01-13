@@ -38,7 +38,7 @@ def rgb_to_bgr(img):
         return img[:, :, :, ::-1]
 
 
-def combine_and_fit(data, gap=1, factor=20, is_layer=False):
+def combine_and_fit(data, gap=1, factor=20, is_conv=False, is_fc=False):
     h, w = data.shape[1:3]
     color = data.shape[-1] == 3
     total = len(data)
@@ -51,6 +51,7 @@ def combine_and_fit(data, gap=1, factor=20, is_layer=False):
         y_jump = h * factor + gap
         x_jump = w * factor + gap
         img = np.zeros((height, width, 3), dtype=np.float32)
+        img += 0.1
         i = 0
         for y in range(n_col):
             y = y * y_jump
@@ -61,7 +62,7 @@ def combine_and_fit(data, gap=1, factor=20, is_layer=False):
                 i += 1
         return img
     else:
-        if is_layer:
+        if is_conv:
             n_row = int(math.ceil(math.sqrt(total)))
             n_col = n_row
         else:
@@ -74,8 +75,11 @@ def combine_and_fit(data, gap=1, factor=20, is_layer=False):
         height = int(n_row * h * factor + n_row_gap * gap)
         y_jump = int(h * factor + gap)
         x_jump = int(w * factor + gap)
+        new_w = int(w * factor)
+        new_h = int(h * factor)
 
         img = np.zeros((height, width), dtype=np.float32)
+        img += 0.2
 
         i = 0
         for y in range(n_row):
@@ -87,21 +91,21 @@ def combine_and_fit(data, gap=1, factor=20, is_layer=False):
                 if i >= total:
                     break
 
-                if is_layer:
+                if is_conv:
                     d = data[i, :, :]
                 else:
                     d = data[i, :, :, j]
 
                 to_y = y + int(h * factor)
                 to_x = x + int(w * factor)
-                img[y:to_y, x:to_x] = cv2.resize(d, None, fx=factor, fy=factor,
+                img[y:to_y, x:to_x] = cv2.resize(d, (new_w, new_h),
                                                  interpolation=cv2.INTER_AREA)
 
-                if is_layer:
+                if is_conv:
                     i += 1
                 else:
                     j += 1
 
-            if not is_layer:
+            if not is_conv:
                 i += 1
         return img
