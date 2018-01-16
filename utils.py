@@ -38,18 +38,24 @@ def rgb_to_bgr(img):
         return img[:, :, :, ::-1]
 
 
-def combine_and_fit(data, gap=1, factor=20, is_conv=False, is_fc=False):
-    h, w = data.shape[1:3]
-    color = data.shape[-1] == 3
+def combine_and_fit(data, gap=1, is_conv=False, is_fc=False, disp_w=None):
+    if len(data.shape) == 4:
+        h, w = data.shape[1:3]
+        color = data.shape[-1] == 3
+    else:
+        h, w = 1, 1
+        color = False
+
     total = len(data)
 
     if color:
+        factor = 10
         n_col = int(math.ceil(math.sqrt(total)))
         n_col_gap = n_col - 1
-        width = n_col * w * factor + n_col_gap * gap
-        height = n_col * h * factor + n_col_gap * gap
-        y_jump = h * factor + gap
-        x_jump = w * factor + gap
+        width = int(n_col * w * factor + n_col_gap * gap)
+        height = int(n_col * h * factor + n_col_gap * gap)
+        y_jump = int(h * factor + gap)
+        x_jump = int(w * factor + gap)
         img = np.zeros((height, width, 3), dtype=np.float32)
         img += 0.1
         i = 0
@@ -62,15 +68,18 @@ def combine_and_fit(data, gap=1, factor=20, is_conv=False, is_fc=False):
                 i += 1
         return img
     else:
-        if is_conv:
+        if is_conv or is_fc:
             n_row = int(math.ceil(math.sqrt(total)))
             n_col = n_row
         else:
             n_row = total
             n_col = data.shape[-1]
 
+
         n_col_gap = n_col - 1
         n_row_gap = n_row - 1
+
+        factor = (disp_w - n_col_gap * gap) / float(n_col * w)
         width = int(n_col * w * factor + n_col_gap * gap)
         height = int(n_row * h * factor + n_row_gap * gap)
         y_jump = int(h * factor + gap)
@@ -93,6 +102,8 @@ def combine_and_fit(data, gap=1, factor=20, is_conv=False, is_fc=False):
 
                 if is_conv:
                     d = data[i, :, :]
+                elif is_fc:
+                    d = data[i]
                 else:
                     d = data[i, :, :, j]
 
@@ -101,11 +112,11 @@ def combine_and_fit(data, gap=1, factor=20, is_conv=False, is_fc=False):
                 img[y:to_y, x:to_x] = cv2.resize(d, (new_w, new_h),
                                                  interpolation=cv2.INTER_AREA)
 
-                if is_conv:
+                if is_conv or is_fc:
                     i += 1
                 else:
                     j += 1
 
-            if not is_conv:
+            if not is_conv and not is_fc:
                 i += 1
         return img
