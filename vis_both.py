@@ -12,7 +12,7 @@ def main():
     display_weight = False
 
     dirname = os.path.dirname(os.path.abspath(__file__))
-    layer_idx = 22
+    layer_idx = 18
 
     img_disp = cv2.imread('{}/images/woh.png'.format(dirname))
     img_disp = cv2.resize(img_disp, (224, 224))
@@ -21,7 +21,9 @@ def main():
     img = img - np.array([103.939, 116.779, 123.68])  # bgr
 
     for i, layer in enumerate(model.layers):
-        print i, layer
+        print(i, layer)
+
+    run_once = False
 
     while True:
         out = utils.get_layers(img, model, layer_idx)
@@ -38,8 +40,7 @@ def main():
         disp = utils.combine_and_fit(out, is_conv=is_conv, is_fc=is_fc, disp_w=800)
 
         if display_weight:
-            weight = model.get_weights()[
-                (layer_idx - 1) * 2]  # minus 1 because first layer in model is Input, multiply 2 because to skip bias
+            weight = model.get_weights()[1]  # only first layer is interpretable for *me*
             weight = utils.normalize_weights(weight, 'conv')
             weight = np.transpose(weight, (3, 0, 1, 2))
             weight_disp = utils.combine_and_fit(weight)
@@ -60,9 +61,17 @@ def main():
         elif val == ord('w'):
             if layer_idx < 22:
                 layer_idx += 1
+                print(model.layers[layer_idx].name)
         elif val == ord('s'):
             if layer_idx > 1:
                 layer_idx -= 1
+                print(model.layers[layer_idx].name)
+
+        if run_once:
+            break
+
+    if run_once:
+        cv2.waitKey(0)
 
 
 if __name__ == '__main__':

@@ -23,13 +23,13 @@ def main():
     img = img - np.array([103.939, 116.779, 123.68])  # bgr
 
     for i, layer in enumerate(model.layers):
-        print i, layer
+        print(i, layer)
 
     out = utils.get_layers(img, model, 1)
     out = np.transpose(out, (3, 1, 2, 0))
 
     out = utils.normalize_image(out)
-    disp = utils.combine_and_fit(out, factor=0.5, is_conv=True)
+    disp = utils.combine_and_fit(out, is_conv=True, disp_w=800)
 
     # out = np.square(out, 0)
 
@@ -39,7 +39,7 @@ def main():
     preds = (np.argsort(prob)[::-1])[:5]
 
     for p in preds:
-        print class_names[p], prob[p]
+        print(class_names[p], prob[p])
 
     cv2.waitKey(0)
 

@@ -18,7 +18,7 @@ def main():
 
         w = utils.normalize_weights(weight_val, mode)
         w = np.transpose(w, (3, 0, 1, 2))
-        disp = utils.combine_and_fit(w, factor=1)
+        disp = utils.combine_and_fit(w, disp_w=800)
 
         cv2.imshow('disp1', disp)
         cv2.waitKey(0)
