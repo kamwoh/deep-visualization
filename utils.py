@@ -87,6 +87,8 @@ def rgb_to_bgr(img):
 def combine_and_fit(data, gap=1, is_conv=False, is_fc=False, is_deconv=False, is_weights=False, disp_w=800):
     if len(data.shape) == 4:
         h, w = data.shape[1:3]
+        if disp_w is None:
+            disp_w = data.shape[0] * w  # default shape
     else:
         h, w = 1, 1
 

@@ -1,14 +1,12 @@
 import os
 
-os.environ['CUDA_VISIBLE_DEVICES'] = ''  # not enough memory, need to turn off gpu
-
-import numpy as np
 import cv2
+import numpy as np
+import tensorflow as tf
+from keras.applications import VGG16
+from tensorflow.python.ops import gen_nn_ops
 
 import utils
-import tensorflow as tf
-from tensorflow.python.ops import gen_nn_ops
-from keras.applications import VGG16
 
 
 def main():
@@ -37,7 +35,7 @@ def main():
 
     out = utils.deconv(img, model, layer_idx, g=g, sess=sess)
     out = utils.normalize_image(out, per_image=True)
-    out = utils.combine_and_fit(out, is_deconv=True, disp_w=1920)
+    out = utils.combine_and_fit(out, is_deconv=True, disp_w=4000)
     out = utils.to_255(out)
 
     cv2.imwrite('{}_deconv_out.png'.format(model.layers[layer_idx].name), out)
