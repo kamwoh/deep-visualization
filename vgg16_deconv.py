@@ -36,7 +36,7 @@ def main():
     img = img - np.array([103.939, 116.779, 123.68])  # bgr
 
     out = utils.deconv(img, model, layer_idx, g=g, sess=sess)
-    out = utils.normalize_image(out)
+    out = utils.normalize_image(out, per_image=True)
     out = utils.combine_and_fit(out, is_deconv=True, disp_w=1920)
     out = utils.to_255(out)
 

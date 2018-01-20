@@ -46,7 +46,12 @@ def deconv(x, model, out_idx, batch=8, g=None, sess=None):
 
 def normalize_image(img, per_image=False):
     if per_image:
-        pass  # todo:
+        new_img = np.zeros(img.shape)
+
+        for i in range(img.shape[0]):
+            new_img[i] = normalize_image(img[i])
+
+        return new_img
     else:
         min_img = img.min()
         max_img = img.max()
