@@ -44,10 +44,13 @@ def deconv(x, model, out_idx, batch=8, g=None, sess=None):
     return out
 
 
-def normalize_image(img, gamma=1.0):
-    min_img = img.min()
-    max_img = img.max()
-    return (img - min_img) / (max_img - min_img + 1e-7)
+def normalize_image(img, per_image=False):
+    if per_image:
+        pass  # todo:
+    else:
+        min_img = img.min()
+        max_img = img.max()
+        return (img - min_img) / (max_img - min_img + 1e-7)
 
 
 def normalize_weights(weights, mode, gamma=1.0):
