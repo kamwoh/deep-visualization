@@ -37,7 +37,7 @@ def main():
                 is_fc = True
                 out = np.transpose(out, (1, 0))
 
-            out = utils.normalize_image(out)
+            out = utils.normalize(out, per_image=True)
             disp = utils.combine_and_fit(out, is_conv=is_conv, is_fc=is_fc, disp_w=800)
 
             cv2.imshow('input', img_disp)

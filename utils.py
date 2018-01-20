@@ -44,6 +44,12 @@ def deconv(x, model, out_idx, batch=8, g=None, sess=None):
     return out
 
 
+def normalize(data, per_image=False):
+    if len(data.shape) == 2:
+        return normalize_image(data, per_image=False)
+    else:
+        return normalize_image(data, per_image)
+
 def normalize_image(img, per_image=False):
     if per_image:
         new_img = np.zeros(img.shape)
