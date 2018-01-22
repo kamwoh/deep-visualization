@@ -81,9 +81,17 @@ def deconv(x, model, out_idx, batch=8, g=None, sess=None):
     return out
 
 
-def visstd(data, s=0.1):
+def visstd(data, s=0.1, per_image=False):
     '''Normalize the image range for visualization'''
-    return (data - data.mean()) / max(data.std(), 1e-4) * s + 0.5
+    if per_image:
+        new_img = np.zeros(data.shape)
+
+        for i in range(data.shape[0]):
+            new_img[i] = visstd(data[i])
+
+        return new_img
+    else:
+        return (data - data.mean()) / max(data.std(), 1e-4) * s + 0.5
 
 
 def normalize(data, per_image=False):
