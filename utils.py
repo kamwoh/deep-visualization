@@ -9,7 +9,43 @@ from keras import backend as K
 from keras.models import Model
 
 
-def get_layers(x, model, out_idx):
+def generate_random_image(n, shape):
+    return np.random.uniform(size=[n] + shape) + 117.0
+
+
+def deepdream(x, model, out_idx, batch=8, step=1.0, iterations=20, g=None, sess=None):
+    """
+
+    :type model: Model
+    """
+    print('computing...')
+    start_time = time.time()
+    with g.as_default():
+        with sess.as_default():
+            input_tensor = model.layers[0].input
+            out_tensor = model.layers[out_idx].output
+            out_tensor_shape = out_tensor.get_shape().as_list()
+            input_tensor_shape = model.layers[0].input.get_shape().as_list()
+            t_idx = [K.placeholder(dtype=tf.int32) for j in range(batch)]
+            t_objective = K.mean(out_tensor, axis=(0, 1, 2))  # loss
+            t_grad = [K.gradients(t_objective[t_idx[j]], input_tensor)[0] for j in range(batch)]
+            t_concat_grad = K.concatenate(t_grad, axis=0)
+
+            f = K.function([input_tensor] + t_idx,
+                           [t_concat_grad, t_objective])
+            x_copy = x.copy()
+
+            for i in range(iterations):
+                g, score = f([x_copy] + [i + j for j in range(batch)])
+                g = np.asarray([image_grad / (image_grad.std() + 1e-8) for image_grad in g])
+                x_copy += g * step
+                yield x_copy
+
+    print('\ntotal time: {} seconds'.format(time.time() - start_time))
+    # return x_copy
+
+
+def activation(x, model, out_idx):
     f = K.function([model.layers[0].input],
                    [model.layers[out_idx].output])
     out = f([x])[0]
@@ -44,11 +80,17 @@ def deconv(x, model, out_idx, batch=8, g=None, sess=None):
     return out
 
 
+def visstd(data, s=0.1):
+    '''Normalize the image range for visualization'''
+    return (data - data.mean()) / max(data.std(), 1e-4) * s + 0.5
+
+
 def normalize(data, per_image=False):
     if len(data.shape) == 2:
         return normalize_image(data, per_image=False)
     else:
         return normalize_image(data, per_image)
+
 
 def normalize_image(img, per_image=False):
     if per_image:
@@ -64,14 +106,14 @@ def normalize_image(img, per_image=False):
         return (img - min_img) / (max_img - min_img + 1e-7)
 
 
-def normalize_weights(weights, mode, gamma=1.0):
+def normalize_weights(weights, mode):
     if mode == 'conv':
         if weights.shape[2] == 3:  # (h, w, c, n_filter)
             new_weights = normalize_image(weights)
         else:
             new_weights = np.zeros(weights.shape)
             for i in range(weights.shape[3]):
-                new_weights[..., i] = normalize_image(weights[..., i], gamma)
+                new_weights[..., i] = normalize_image(weights[..., i])
         return new_weights
 
 

@@ -27,7 +27,7 @@ def main():
     while True:
         if is_changed:
             is_changed = False
-            out = utils.get_layers(img, model, layer_idx)
+            out = utils.activation(img, model, layer_idx)
             if len(out.shape) == 4:
                 is_conv = True
                 is_fc = False
@@ -37,7 +37,7 @@ def main():
                 is_fc = True
                 out = np.transpose(out, (1, 0))
 
-            out = utils.normalize(out, per_image=True)
+            out = utils.normalize(out)
             disp = utils.combine_and_fit(out, is_conv=is_conv, is_fc=is_fc, disp_w=800)
 
             cv2.imshow('input', img_disp)
