@@ -26,20 +26,20 @@ def deepdream(x, model, out_idx, batch=8, step=1.0, iterations=20, g=None, sess=
             out_tensor = model.layers[out_idx].output
             out_tensor_shape = out_tensor.get_shape().as_list()
             input_tensor_shape = model.layers[0].input.get_shape().as_list()
-            t_idx = [K.placeholder(dtype=tf.int32) for j in range(batch)]
+            t_idx = K.placeholder(dtype=tf.int32)
             t_objective = K.mean(out_tensor, axis=(0, 1, 2))  # loss
-            t_grad = [K.gradients(t_objective[t_idx[j]], input_tensor)[0] for j in range(batch)]
-            t_concat_grad = K.concatenate(t_grad, axis=0)
+            t_grad = K.gradients(t_objective[t_idx], input_tensor)[0]
 
-            f = K.function([input_tensor] + t_idx,
-                           [t_concat_grad, t_objective])
+            f = K.function([input_tensor, t_idx],
+                           [t_grad, t_objective])
+
             x_copy = np.concatenate([x.copy() for j in range(out_tensor_shape[3])], axis=0)
 
             for i in range(iterations):
-                for k in range(0, out_tensor_shape[3], batch):
-                    g, score = f([x_copy[k:k + batch]] + [k + j for j in range(batch)])
-                    g = np.asarray([image_grad / (image_grad.std() + 1e-8) for image_grad in g])
-                    x_copy[k:k + batch] += g * step
+                for k in range(out_tensor_shape[3]):
+                    g, score = f([np.expand_dims(x_copy[k], 0), k])
+                    g /= g.std() + 1e-8
+                    x_copy[k, :, :, :] += g * step
                 yield x_copy
 
     print('\ntotal time: {} seconds'.format(time.time() - start_time))
