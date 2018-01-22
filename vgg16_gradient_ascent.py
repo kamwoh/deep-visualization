@@ -1,4 +1,5 @@
 import cv2
+import numpy as np
 import tensorflow as tf
 from keras.applications import VGG16
 
@@ -21,6 +22,7 @@ def main():
 
     img = utils.generate_random_image(n,
                                       [224, 224, 3])
+    img = img - np.array([103.939, 116.779, 123.68])
 
     for out in utils.deepdream(img, model, layer_idx, channel, iterations=100, g=g, sess=sess):
         out_mean = utils.visstd(out, per_image=True)
