@@ -22,7 +22,7 @@ def main():
     img = utils.generate_random_image(n,
                                       [224, 224, 3])
 
-    for out in utils.deepdream(img, model, layer_idx, channel, g=g, sess=sess):
+    for out in utils.deepdream(img, model, layer_idx, channel, iterations=100, g=g, sess=sess):
         out_mean = utils.visstd(out, per_image=True)
         out_mean = utils.combine_and_fit(out_mean, is_deconv=True, disp_w=1000)
         out_mean = utils.to_255(out_mean)
@@ -33,6 +33,7 @@ def main():
 
         cv2.imshow('deepdream1', out_mean)
         cv2.imshow('deepdream2', out_minmax)
+        cv2.waitKey(1) & 0xFF
 
     cv2.waitKey(0)
 
