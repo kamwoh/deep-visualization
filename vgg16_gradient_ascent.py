@@ -13,24 +13,24 @@ def main():
         with sess.as_default():
             model = VGG16()
 
-    n = 4
+    n = 16
     channel = 0
     layer_idx = 17
 
     for i, layer in enumerate(model.layers):
         print(i, layer.output)
 
-    img = utils.generate_random_image(n,
-                                      [224, 224, 3])
-    img = img - np.array([103.939, 116.779, 123.68])
+    img = utils.generate_random_image(n, [224, 224, 3])
+    img = img.astype(np.float32)
 
-    for out in utils.deepdream(img, model, layer_idx, channel, iterations=100, g=g, sess=sess):
+    for i, out in enumerate(utils.deepdream(img, model, layer_idx, channel, iterations=100, g=g, sess=sess)):
+        print(i)
         out_mean = utils.visstd(out, per_image=True)
-        out_mean = utils.combine_and_fit(out_mean, is_deconv=True, disp_w=1000)
+        out_mean = utils.combine_and_fit(out_mean, is_deconv=True, disp_w=500)
         out_mean = utils.to_255(out_mean)
 
         out_minmax = utils.normalize(out, per_image=True)
-        out_minmax = utils.combine_and_fit(out_minmax, is_deconv=True, disp_w=1000)
+        out_minmax = utils.combine_and_fit(out_minmax, is_deconv=True, disp_w=500)
         out_minmax = utils.to_255(out_minmax)
 
         cv2.imshow('deepdream1', out_mean)
