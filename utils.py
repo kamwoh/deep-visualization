@@ -3,17 +3,18 @@ import sys
 import time
 
 import cv2
-import numpy as np
-import tensorflow as tf
 from keras import backend as K
 from keras.models import Model
 
+from deepdream_utils import *
+
 
 def generate_random_image(n, shape):
-    return np.random.uniform(size=[n] + shape) * 255.0
+    return np.random.uniform(size=[n] + shape)
 
 
-def deepdream(x, model, out_idx, channel, step=1.0, iterations=20, g=None, sess=None):
+def deepdream(x, model, out_idx, channel, step=1.0, iterations=20,
+              octave_n=3, octave_scale=1.4, lap_n=4, g=None, sess=None):
     """
 
     :type model: Model
@@ -26,7 +27,7 @@ def deepdream(x, model, out_idx, channel, step=1.0, iterations=20, g=None, sess=
             out_tensor = model.layers[out_idx].output
             t_objective = K.mean(out_tensor, axis=(0, 1, 2))  # loss
             t_grad = K.gradients(t_objective[channel], input_tensor)[0]
-
+            t_grad = lap_normalize(t_grad, lap_n)
             f = K.function([input_tensor],
                            [t_grad, t_objective])
 
@@ -35,7 +36,6 @@ def deepdream(x, model, out_idx, channel, step=1.0, iterations=20, g=None, sess=
             for i in range(iterations):
                 for k in range(x_copy.shape[0]):
                     g, score = f([np.expand_dims(x_copy[k], 0)])
-                    g /= g.std() + 1e-8
                     x_copy[k] += g[0] * step
                 yield x_copy
 
