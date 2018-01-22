@@ -21,7 +21,7 @@ def main():
         print(i, layer.output)
 
     img = utils.generate_random_image(model.layers[layer_idx].output.get_shape().as_list()[3],
-                                      (224, 224, 3))
+                                      [224, 224, 3])
 
     for out in utils.deepdream(img, model, layer_idx, g=g, sess=sess):
         out = utils.visstd(out, per_image=True)
