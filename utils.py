@@ -33,7 +33,7 @@ def deepdream(x, model, out_idx, batch=8, step=1.0, iterations=20, g=None, sess=
             f = K.function([input_tensor, t_idx],
                            [t_grad, t_objective])
 
-            x_copy = np.concatenate([x.copy() for j in range(out_tensor_shape[3])], axis=0)
+            x_copy = x.copy()
 
             for i in range(iterations):
                 for k in range(out_tensor_shape[3]):
