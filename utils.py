@@ -39,7 +39,7 @@ def deepdream(x, model, out_idx, batch=8, step=1.0, iterations=20, g=None, sess=
                 for k in range(out_tensor_shape[3]):
                     g, score = f([np.expand_dims(x_copy[k], 0), k])
                     g /= g.std() + 1e-8
-                    x_copy[k, :, :, :] += g * step
+                    x_copy[k] += g[0] * step
                 yield x_copy
 
     print('\ntotal time: {} seconds'.format(time.time() - start_time))
