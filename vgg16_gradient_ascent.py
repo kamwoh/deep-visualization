@@ -1,5 +1,3 @@
-import os
-
 import cv2
 import tensorflow as tf
 from keras.applications import VGG16
@@ -14,22 +12,27 @@ def main():
         with sess.as_default():
             model = VGG16()
 
-    dirname = os.path.dirname(os.path.abspath(__file__))
+    n = 4
+    channel = 0
     layer_idx = 17
 
     for i, layer in enumerate(model.layers):
         print(i, layer.output)
 
-    img = utils.generate_random_image(model.layers[layer_idx].output.get_shape().as_list()[3],
+    img = utils.generate_random_image(n,
                                       [224, 224, 3])
 
-    for out in utils.deepdream(img, model, layer_idx, g=g, sess=sess):
-        out = utils.visstd(out, per_image=True)
-        out = utils.combine_and_fit(out, is_deconv=True, disp_w=1000)
-        out = utils.to_255(out)
+    for out in utils.deepdream(img, model, layer_idx, channel, g=g, sess=sess):
+        out_mean = utils.visstd(out, per_image=True)
+        out_mean = utils.combine_and_fit(out_mean, is_deconv=True, disp_w=1000)
+        out_mean = utils.to_255(out_mean)
 
-        cv2.imshow('deepdream', out)
-        cv2.waitKey(1) & 0xFF
+        out_minmax = utils.normalize(out, per_image=True)
+        out_minmax = utils.combine_and_fit(out_minmax, is_deconv=True, disp_w=1000)
+        out_minmax = utils.to_255(out_minmax)
+
+        cv2.imshow('deepdream1', out_mean)
+        cv2.imshow('deepdream2', out_minmax)
 
     cv2.waitKey(0)
 

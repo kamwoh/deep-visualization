@@ -13,7 +13,7 @@ def generate_random_image(n, shape):
     return np.random.uniform(size=[n] + shape) + 117.0
 
 
-def deepdream(x, model, out_idx, batch=8, step=1.0, iterations=20, g=None, sess=None):
+def deepdream(x, model, out_idx, channel, step=1.0, iterations=20, g=None, sess=None):
     """
 
     :type model: Model
@@ -24,20 +24,17 @@ def deepdream(x, model, out_idx, batch=8, step=1.0, iterations=20, g=None, sess=
         with sess.as_default():
             input_tensor = model.layers[0].input
             out_tensor = model.layers[out_idx].output
-            out_tensor_shape = out_tensor.get_shape().as_list()
-            input_tensor_shape = model.layers[0].input.get_shape().as_list()
-            t_idx = K.placeholder(dtype=tf.int32)
             t_objective = K.mean(out_tensor, axis=(0, 1, 2))  # loss
-            t_grad = K.gradients(t_objective[t_idx], input_tensor)[0]
+            t_grad = K.gradients(t_objective[channel], input_tensor)[0]
 
-            f = K.function([input_tensor, t_idx],
+            f = K.function([input_tensor],
                            [t_grad, t_objective])
 
             x_copy = x.copy()
 
             for i in range(iterations):
-                for k in range(out_tensor_shape[3]):
-                    g, score = f([np.expand_dims(x_copy[k], 0), k])
+                for k in range(x_copy.shape[0]):
+                    g, score = f([np.expand_dims(x_copy[k], 0)])
                     g /= g.std() + 1e-8
                     x_copy[k] += g[0] * step
                 yield x_copy
