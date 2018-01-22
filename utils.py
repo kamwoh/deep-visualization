@@ -33,11 +33,11 @@ def deepdream(x, model, out_idx, batch=8, step=1.0, iterations=20, g=None, sess=
 
             f = K.function([input_tensor] + t_idx,
                            [t_concat_grad, t_objective])
-            x_copy = np.asarray([x.copy() for j in range(out_tensor_shape[3])])
+            x_copy = np.concatenate([x.copy() for j in range(out_tensor_shape[3])], axis=0)
 
             for i in range(iterations):
                 for k in range(0, out_tensor_shape[3], batch):
-                    g, score = f([x_copy] + [k + j for j in range(batch)])
+                    g, score = f([x_copy[k:k + batch]] + [k + j for j in range(batch)])
                     g = np.asarray([image_grad / (image_grad.std() + 1e-8) for image_grad in g])
                     x_copy[k:k + batch] += g * step
                 yield x_copy
