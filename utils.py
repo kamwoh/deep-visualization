@@ -10,7 +10,7 @@ from keras.models import Model
 
 
 def generate_random_image(n, shape):
-    return np.random.uniform(size=[n] + shape) + 117.0
+    return np.random.uniform(size=[n] + shape) * 255.0
 
 
 def deepdream(x, model, out_idx, channel, step=1.0, iterations=20, g=None, sess=None):
