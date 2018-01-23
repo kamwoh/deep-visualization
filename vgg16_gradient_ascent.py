@@ -13,7 +13,7 @@ def main():
         with sess.as_default():
             model = VGG16()
 
-    n = 16
+    n = 1
     channel = 0
     layer_idx = 17
 
