@@ -54,11 +54,11 @@ def deepdream(x_input, model, out_idx, channel, step=1.0, iterations=20,
                         min_image = image.min()
                         max_image = image.max()
                         bgr_image = (image - min_image) / (max_image - min_image)
-                        rgb_image = bgr_image[:, :, :, ::-1]
+                        rgb_image = bgr_image[:, :, ::-1]
                         tv_denoise_weight = 2.0
                         denoise_rgb = denoise_tv_bregman(rgb_image,
                                                          weight=tv_denoise_weight)
-                        denoise_bgr = denoise_rgb[:, :, :, ::-1]
+                        denoise_bgr = denoise_rgb[:, :, ::-1]
                         scaled_denoise_bgr = (denoise_bgr * (max_image - min_image) + min_image).reshape(
                             images[i].shape)
                         images[i] = scaled_denoise_bgr
