@@ -71,9 +71,9 @@ def deepdream(x_input, model, out_idx, channel, step=1.0, iterations=20,
                     shifted_x = np.roll(images, shift=sx, axis=2)
                     shifted_images = np.roll(shifted_x, shift=sy, axis=1)
                     max_y = max(h - sz[0] // 2, sz[0])
-                    jump_y = sz[0] // 2
+                    jump_y = sz[0]
                     max_x = max(w - sz[1] // 2, sz[1])
-                    jump_x = sz[1] // 2
+                    jump_x = sz[1]
                     grads = np.zeros_like(images)
 
                     for y in range(0, max_y, jump_y):
