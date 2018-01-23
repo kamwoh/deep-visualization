@@ -14,6 +14,22 @@ def generate_random_image(n, shape):
     return np.random.uniform(size=[n] + shape)
 
 
+def denoise_images(images):
+    tv_denoise_weight = 2.0
+
+    for i, image in enumerate(images):
+        min_image = image.min()
+        max_image = image.max()
+        bgr_image = (image - min_image) / (max_image - min_image)
+        rgb_image = bgr_image[:, :, ::-1]
+        denoise_rgb = denoise_tv_bregman(rgb_image,
+                                         weight=tv_denoise_weight)
+        denoise_bgr = denoise_rgb[:, :, ::-1]
+        scaled_denoise_bgr = (denoise_bgr * (max_image - min_image) + min_image).reshape(
+            images[i].shape)
+        images[i] = scaled_denoise_bgr
+
+
 def deepdream(x_input, model, out_idx, channel, step=1.0, iterations=20,
               octave_n=3, octave_scale=1.4, lap_n=4, g=None, sess=None):
     """
@@ -49,38 +65,32 @@ def deepdream(x_input, model, out_idx, channel, step=1.0, iterations=20,
                 if octave > 0:
                     hw = np.float32(images.shape[1:3]) * octave_scale
                     images = resize_f([images, np.int32(hw)])[0]
-
-                    for i, image in enumerate(images):
-                        min_image = image.min()
-                        max_image = image.max()
-                        bgr_image = (image - min_image) / (max_image - min_image)
-                        rgb_image = bgr_image[:, :, ::-1]
-                        tv_denoise_weight = 2.0
-                        denoise_rgb = denoise_tv_bregman(rgb_image,
-                                                         weight=tv_denoise_weight)
-                        denoise_bgr = denoise_rgb[:, :, ::-1]
-                        scaled_denoise_bgr = (denoise_bgr * (max_image - min_image) + min_image).reshape(
-                            images[i].shape)
-                        images[i] = scaled_denoise_bgr
+                    denoise_images(images)
 
                 for i in range(iterations):
                     h, w = images.shape[1:3]  # resized hw
                     sz = input_tensor.get_shape().as_list()[1:3]  # original size
                     sx = np.random.randint(sz[1], size=1)
                     sy = np.random.randint(sz[0], size=1)
+
                     shifted_x = np.roll(images, shift=sx, axis=2)
                     shifted_images = np.roll(shifted_x, shift=sy, axis=1)
+
                     max_y = max(h - sz[0] // 2, sz[0])
                     jump_y = sz[0]
                     max_x = max(w - sz[1] // 2, sz[1])
                     jump_x = sz[1]
+
                     grads = np.zeros_like(images)
 
                     for y in range(0, max_y, jump_y):
                         for x in range(0, max_x, jump_x):
                             feed_images = shifted_images[:, y:y + sz[0], x:x + sz[1]]
-                            out = grad_f([feed_images])[0]
-                            grads[:, y:y + sz[0], x:x + sz[0]] = out
+                            try:
+                                out = grad_f([feed_images])[0]
+                                grads[:, y:y + sz[0], x:x + sz[0]] = out
+                            except:
+                                pass
 
                     unshifted_x = np.roll(grads, -sx, axis=2)
                     lap_in = np.roll(unshifted_x, -sy, axis=1)
